@@ -25,7 +25,6 @@ void *e(void *p)
 	t_mut *t = p;
 
 	pthread_mutex_lock(t->mutex);
-
 	for (int i = 0; i < 10000; ++i)
 	{
 		++*t->cnt;

@@ -11,6 +11,5 @@ void	printf_time()
 	struct timeval times;
 	if (gettimeofday(&times, NULL))
 		error();
-	printf("%ld", times.tv_sec);
-	printf("%d\n", times.tv_usec / 1000);
+	printf("%ld%03d ",times.tv_sec, times.tv_usec / 1000);
 }

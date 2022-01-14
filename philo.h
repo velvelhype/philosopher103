@@ -6,14 +6,16 @@
 #include <sys/time.h>
 
 typedef struct s_status{
-	int		philo_numbers;
+	int		philo_number;
 	int		time_to_die;
-	int		eat_time;
+	int		time_to_eat;
 	int		sleep_time;
-	int		limit_eat;
+	int		limit_number_eat;
 
 	bool	farewell_note;
-	pthread_mutex_t	*forks;
+	int		*forks;
+	pthread_mutex_t	*mutex_forks;
+	pthread_t *philos;
 } t_status;
 
 void	error();
