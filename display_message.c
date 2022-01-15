@@ -13,6 +13,7 @@ void	timer(int time)
 	{
 		if (get_time() - ini >= time)
 			break;
+		usleep(100);
 	}
 }
 
