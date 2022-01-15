@@ -20,3 +20,5 @@ typedef struct s_status{
 
 void	error();
 void	printf_time();
+size_t	get_time();
+void	timer();
