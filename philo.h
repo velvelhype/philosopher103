@@ -18,7 +18,7 @@ typedef struct s_status{
 	pthread_t *philos;
 } t_status;
 
-void	error();
+void	error_exit();
 void	printf_time();
 size_t	get_time();
 void	timer();

@@ -1,6 +1,6 @@
 #include "philo.h"
 
-void	error()
+void	error_exit()
 {
 	write(1, "error\n", 7);
 	exit(2);
@@ -29,7 +29,7 @@ void	printf_time()
 {
 	struct timeval times;
 	if (gettimeofday(&times, NULL))
-		error();
+		error_exit();
 	printf("%zu ", get_time());
 }
 

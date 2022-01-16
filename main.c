@@ -12,7 +12,11 @@ void	init_status(int argc, char **argv, t_status *status)
 	// for (int i = 0; i < argc; i++)
 	// 	printf("%d\n", ft_atoi(argv[i]));
 	if (argc == 6)
+	{
 		status->limit_number_eat = ft_atoi(argv[5]);
+		if (status->limit_number_eat <= 0)
+			error_exit();
+	}
 	status->farewell_note = 0;
 	status->mutex_forks = (pthread_mutex_t *)malloc
 	(sizeof(pthread_mutex_t) * status->philo_number);
@@ -51,7 +55,7 @@ void	start_philos(t_status status)
 int main(int argc, char **argv)
 {
 	if(argc != 5 && argc != 6)
-		error();
+		error_exit();
 	t_status status;
 	init_status(argc, argv, &status);
 	start_philos(status);

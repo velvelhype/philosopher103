@@ -1,20 +1,21 @@
 #include "philo.h"
 
-#define MAX 5
-
 typedef struct s_mut
 {
 	int max_number;
 	int number;
-	int	time_to_eat;
 	int	time_to_die;
-	int forks[MAX];
-	pthread_mutex_t fork_mutex[MAX];
+	int	eat_time;
+	int sleep_time;
+	int	eat_limit;
+	int *forks;
+	int farewell_note;
+	pthread_mutex_t *fork_mutex;
 	pthread_mutex_t act_mtx;
 	pthread_mutex_t talk_mtx;
 } t_mut;
 
-void action(char *message, t_mut *status, int code_number)
+void action(char *message, t_mut *status, int code_number, int time)
 {
 	code_number += 1;
 
@@ -24,31 +25,33 @@ void action(char *message, t_mut *status, int code_number)
 	{
 		printf("%d has taken a fork\n", code_number);
 		pthread_mutex_unlock(&status->talk_mtx);
-		return;
+		return ;
 	}
-	else if (!ft_strncmp("eat", message, ft_strlen(message)))
+	if (!ft_strncmp("eat", message, ft_strlen(message)))
 	{
 		printf("%d is eating\n", code_number);
 	}
-	else if (!ft_strncmp("sleep", message, ft_strlen(message)))
+	if (!ft_strncmp("sleep", message, ft_strlen(message)))
 	{
 		printf("%d is sleeping\n", code_number);
 	}
-	else
+	if (!ft_strncmp("think", message, ft_strlen(message)))
 	{
 		printf("%d is thinking\n", code_number);
+		pthread_mutex_unlock(&status->talk_mtx);
+		return ;
 	}
 	pthread_mutex_unlock(&status->talk_mtx);
-	timer(20);
+	timer(time);
 }
 
-int fork_number(int fork_number)
+int fork_number(int fork_number, int max_number)
 {
 	// printf("fn : %d\n", fork_number);
-	if (fork_number == MAX)
+	if (fork_number == max_number)
 		fork_number = 0;
 	else if (fork_number == -1)
-		fork_number = MAX - 1;
+		fork_number = max_number - 1;
 	return (fork_number);
 }
 
@@ -58,72 +61,94 @@ void take_a_fork(t_mut *stat, int code_number)
 	// printf("code : %d\n", code_number);
 	while (1)
 	{
-		if (stat->forks[fork_number(code_number)] &&
-			stat->forks[fork_number(code_number + 1)])
+		if (stat->forks[fork_number(code_number, stat->max_number)] &&
+			stat->forks[fork_number(code_number + 1, stat->max_number)])
 		{
-			pthread_mutex_lock(&stat->fork_mutex[fork_number(code_number)]);
-			pthread_mutex_lock(&stat->fork_mutex[fork_number(code_number + 1)]);
-			stat->forks[fork_number(code_number + 1)] = 0;
+			pthread_mutex_lock(&stat->fork_mutex[fork_number(code_number, stat->max_number)]);
+			pthread_mutex_lock(&stat->fork_mutex[fork_number(code_number + 1, stat->max_number)]);
+			stat->forks[fork_number(code_number + 1, stat->max_number)] = 0;
 			// printf("%d ", fork_number(code_number + 1));
-			action("fork", stat, code_number);
-			stat->forks[fork_number(code_number)] = 0;
+			action("fork", stat, code_number, 0);
+			stat->forks[fork_number(code_number, stat->max_number)] = 0;
 			// printf("%d ", fork_number(code_number));
-			action("fork", stat, code_number);
-			action("eat", stat, code_number);
-			stat->forks[fork_number(code_number)] = 1;
-			stat->forks[fork_number(code_number + 1)] = 1;
-			pthread_mutex_unlock(&stat->fork_mutex[fork_number(code_number)]);
-			pthread_mutex_unlock(&stat->fork_mutex[fork_number(code_number + 1)]);
+			action("fork", stat, code_number, 0);
+			action("eat", stat, code_number, stat->eat_time);
+			stat->forks[fork_number(code_number, stat->max_number)] = 1;
+			stat->forks[fork_number(code_number + 1, stat->max_number)] = 1;
+			pthread_mutex_unlock(&stat->fork_mutex[fork_number(code_number, stat->max_number)]);
+			pthread_mutex_unlock(&stat->fork_mutex[fork_number(code_number + 1, stat->max_number)]);
 			return;
 		}
 	}
 }
 
-	void *philo_life(void *p)
+void *philo_life(void *p)
+{
+	int	eat_count;
+	eat_count = 0;
+	t_mut *stat = p;
+	stat->number -= 1;
+	int code_number = stat->number;
+	while (1)
 	{
-		t_mut *stat = p;
-		stat->number -= 1;
-		int code_number = stat->number;
-		while (1)
-		{
-			take_a_fork(stat, code_number);
-			action("sleep", stat, code_number);
-			action("think", stat, code_number);
-		}
-		return (NULL);
+		take_a_fork(stat, code_number);
+		eat_count++;
+		if(stat->eat_limit && eat_count == stat->eat_limit)
+			stat->farewell_note++;
+		action("sleep", stat, code_number, stat->sleep_time);
+		action("think", stat, code_number, 0);
 	}
+	return (NULL);
+}
 
-	void	init_status(t_mut *stat, char **argv)
+void	init_status(t_mut *stat, int argc, char **argv)
+{
+	//init
+	stat->max_number = ft_atoi(argv[1]);
+	stat->number = ft_atoi(argv[1]);
+	stat->time_to_die = ft_atoi(argv[2]);
+	stat->eat_time = ft_atoi(argv[3]);
+	stat->sleep_time = ft_atoi(argv[4]);
+	stat->farewell_note = 0;
+	if (argc == 6)
 	{
-		//init
-		printf("where %s\n", argv[1]);
-		stat->number = ft_atoi(argv[1]);
-		printf("where\n");
-		stat->max_number = ft_atoi(argv[1]);
-		for (int i = 0; i < MAX; i++)
-			stat->forks[i] = 1;
-		pthread_mutex_init(&stat->talk_mtx, NULL);
-		for (int i = 0; i < MAX; i++)
-			pthread_mutex_init(&stat->fork_mutex[i], NULL);
-		//create threads
+		stat->eat_limit = ft_atoi(argv[5]);
+		if (stat->eat_limit <= 0)
+			error_exit();
 	}
+	else
+		stat->eat_limit = 0;
+	stat->forks = (int *)malloc(sizeof(int) * stat->max_number);
+	stat->fork_mutex = (pthread_mutex_t *)malloc
+	(sizeof(pthread_mutex_t) * stat->max_number);
+	for (int i = 0; i < stat->max_number; i++)
+		stat->forks[i] = 1;
+	pthread_mutex_init(&stat->talk_mtx, NULL);
+	for (int i = 0; i < stat->max_number; i++)
+		pthread_mutex_init(&stat->fork_mutex[i], NULL);
+	//create threads
+}
 
-	int main(int argc, char **argv)
+int main(int argc, char **argv)
+{
+	t_mut stat;
+	if(argc != 5 && argc != 6)
+		error_exit();
+	init_status(&stat, argc, argv);
+	pthread_t *philos;
+	philos = (pthread_t *)malloc(sizeof(pthread_t) * stat.max_number);
+	for (int i = 0; i < stat.max_number; i++)
 	{
-		pthread_t *philos;
-		philos = (pthread_t *)malloc(sizeof(pthread_t) * MAX);
-		t_mut stat;
-		if(argc != 5 && argc != 6)
-			error();
-		init_status(&stat, argv);
-		for (int i = 0; i < MAX; i++)
-		{
-			pthread_create(&philos[i], NULL, &philo_life, &stat);
-			// pthread_join(philos[i], NULL);
-			pthread_detach(philos[i]);
-			usleep(100);
-		}
-		//./a.out
-		usleep(500000);
-		// usleep(50000);
+		pthread_create(&philos[i], NULL, &philo_life, &stat);
+		// pthread_join(philos[i], NULL);
+		pthread_detach(philos[i]);
+		usleep(100);
 	}
+	//everybody dies
+	while(1)
+	{
+		if(stat.farewell_note)
+			exit(1);
+	}
+	// usleep(900000);
+}
