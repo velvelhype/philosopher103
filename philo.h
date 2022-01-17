@@ -8,6 +8,7 @@
 typedef struct s_status{
 	int		philo_number;
 	int		time_to_die;
+	size_t	*last_meal_time;
 	int		time_to_eat;
 	int		sleep_time;
 	int		limit_number_eat;
@@ -21,4 +22,3 @@ typedef struct s_status{
 void	error_exit();
 void	printf_time();
 size_t	get_time();
-void	timer();

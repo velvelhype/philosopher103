@@ -15,6 +15,21 @@ typedef struct s_mut
 	pthread_mutex_t talk_mtx;
 } t_mut;
 
+void	timer(int time)
+{
+	size_t ini;
+
+	if (time == 0)
+		return ;
+	ini = get_time();
+	while(1)
+	{
+		if (get_time() - ini >= time)
+			break;
+		usleep(100);
+	}
+}
+
 void action(char *message, t_mut *status, int code_number, int time)
 {
 	code_number += 1;
@@ -22,25 +37,13 @@ void action(char *message, t_mut *status, int code_number, int time)
 	pthread_mutex_lock(&status->talk_mtx);
 	printf_time();
 	if (!ft_strncmp("fork", message, ft_strlen(message)))
-	{
 		printf("%d has taken a fork\n", code_number);
-		pthread_mutex_unlock(&status->talk_mtx);
-		return ;
-	}
 	if (!ft_strncmp("eat", message, ft_strlen(message)))
-	{
 		printf("%d is eating\n", code_number);
-	}
 	if (!ft_strncmp("sleep", message, ft_strlen(message)))
-	{
 		printf("%d is sleeping\n", code_number);
-	}
 	if (!ft_strncmp("think", message, ft_strlen(message)))
-	{
 		printf("%d is thinking\n", code_number);
-		pthread_mutex_unlock(&status->talk_mtx);
-		return ;
-	}
 	pthread_mutex_unlock(&status->talk_mtx);
 	timer(time);
 }
@@ -149,6 +152,7 @@ int main(int argc, char **argv)
 	{
 		if(stat.farewell_note)
 			exit(1);
+		// are_philos_starvin();
 	}
 	// usleep(900000);
 }

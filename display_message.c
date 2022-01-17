@@ -6,17 +6,6 @@ void	error_exit()
 	exit(2);
 }
 
-void	timer(int time)
-{
-	size_t ini = get_time();
-	while(1)
-	{
-		if (get_time() - ini >= time)
-			break;
-		usleep(100);
-	}
-}
-
 size_t    get_time(void)
 {
     struct timeval    tv;
