@@ -5,6 +5,7 @@ typedef struct s_mut
 	int max_number;
 	int number;
 	int	time_to_die;
+	size_t	*last_meal_time;
 	int	eat_time;
 	int sleep_time;
 	int	eat_limit;
@@ -32,18 +33,19 @@ void	timer(int time)
 
 void action(char *message, t_mut *status, int code_number, int time)
 {
-	code_number += 1;
-
 	pthread_mutex_lock(&status->talk_mtx);
 	printf_time();
 	if (!ft_strncmp("fork", message, ft_strlen(message)))
-		printf("%d has taken a fork\n", code_number);
+		printf("%d has taken a fork\n", code_number + 1);
 	if (!ft_strncmp("eat", message, ft_strlen(message)))
-		printf("%d is eating\n", code_number);
+	{
+		printf("%d is eating\n", code_number + 1);
+		status->last_meal_time[code_number] = get_time();
+	}
 	if (!ft_strncmp("sleep", message, ft_strlen(message)))
-		printf("%d is sleeping\n", code_number);
+		printf("%d is sleeping\n", code_number + 1);
 	if (!ft_strncmp("think", message, ft_strlen(message)))
-		printf("%d is thinking\n", code_number);
+		printf("%d is thinking\n", code_number + 1);
 	pthread_mutex_unlock(&status->talk_mtx);
 	timer(time);
 }
@@ -92,6 +94,7 @@ void *philo_life(void *p)
 	t_mut *stat = p;
 	stat->number -= 1;
 	int code_number = stat->number;
+	stat->last_meal_time[code_number] = get_time();
 	while (1)
 	{
 		take_a_fork(stat, code_number);
@@ -110,6 +113,7 @@ void	init_status(t_mut *stat, int argc, char **argv)
 	stat->max_number = ft_atoi(argv[1]);
 	stat->number = ft_atoi(argv[1]);
 	stat->time_to_die = ft_atoi(argv[2]);
+	stat->last_meal_time = (size_t *)malloc(sizeof(size_t) * stat->max_number);
 	stat->eat_time = ft_atoi(argv[3]);
 	stat->sleep_time = ft_atoi(argv[4]);
 	stat->farewell_note = 0;
@@ -132,6 +136,23 @@ void	init_status(t_mut *stat, int argc, char **argv)
 	//create threads
 }
 
+void	are_philos_starving(t_mut *stat)
+{
+	size_t now;
+
+	now = get_time();
+	for (int i = 0; i < stat->max_number; i++)
+	{
+		if (stat->last_meal_time[i] + stat->time_to_die <= now)
+		{
+			printf_time();
+			printf("%d died\n", i + 1);
+			stat->farewell_note++;
+			return ;
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	t_mut stat;
@@ -150,9 +171,9 @@ int main(int argc, char **argv)
 	//everybody dies
 	while(1)
 	{
+		are_philos_starving(&stat);
 		if(stat.farewell_note)
 			exit(1);
-		// are_philos_starvin();
 	}
 	// usleep(900000);
 }
