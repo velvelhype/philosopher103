@@ -5,17 +5,21 @@
 #include "libft/libft.h"
 #include <sys/time.h>
 
-typedef struct s_status{
-	int		philo_number;
-	int		time_to_die;
-	int		time_to_eat;
-	int		sleep_time;
-	int		limit_number_eat;
-
-	bool	farewell_note;
-	int		*forks;
-	pthread_mutex_t	*mutex_forks;
-	pthread_t *philos;
+typedef struct s_status
+{
+	int max_number;
+	int number;
+	int	time_to_die;
+	size_t	*last_meal_times;
+	int	eat_time;
+	int sleep_time;
+	int	eat_limit;
+	size_t	*eat_counts;
+	int *forks;
+	int farewell_note;
+	pthread_mutex_t *fork_mutex;
+	pthread_mutex_t act_mtx;
+	pthread_mutex_t talk_mtx;
 } t_status;
 
 void	error_exit();
