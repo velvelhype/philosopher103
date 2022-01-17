@@ -16,7 +16,6 @@ typedef struct s_status
 	int	eat_limit;
 	size_t	*eat_counts;
 	int *forks;
-	int farewell_note;
 	pthread_mutex_t *fork_mutex;
 	pthread_mutex_t act_mtx;
 	pthread_mutex_t talk_mtx;

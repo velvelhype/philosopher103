@@ -10,12 +10,12 @@ void	timer(int time)
 	while(1)
 	{
 		if (get_time() - ini >= time)
-			break;
+			return ;
 		usleep(100);
 	}
 }
 
-void action(char *message, t_status *stat, int code_number, int time)
+void	action(char *message, t_status *stat, int code_number, int time)
 {
 	pthread_mutex_lock(&stat->talk_mtx);
 	printf_time();
@@ -36,7 +36,6 @@ void action(char *message, t_status *stat, int code_number, int time)
 
 int fork_number(int fork_number, int max_number)
 {
-	// printf("fn : %d\n", fork_number);
 	if (fork_number == max_number)
 		fork_number = 0;
 	else if (fork_number == -1)
@@ -46,8 +45,6 @@ int fork_number(int fork_number, int max_number)
 
 void take_a_fork(t_status *stat, int code_number)
 {
-	// printf_time();
-	// printf("code : %d\n", code_number);
 	while (1)
 	{
 		if (stat->forks[fork_number(code_number, stat->max_number)] &&
@@ -56,10 +53,8 @@ void take_a_fork(t_status *stat, int code_number)
 			pthread_mutex_lock(&stat->fork_mutex[fork_number(code_number, stat->max_number)]);
 			pthread_mutex_lock(&stat->fork_mutex[fork_number(code_number + 1, stat->max_number)]);
 			stat->forks[fork_number(code_number + 1, stat->max_number)] = 0;
-			// printf("%d ", fork_number(code_number + 1));
 			action("fork", stat, code_number, 0);
 			stat->forks[fork_number(code_number, stat->max_number)] = 0;
-			// printf("%d ", fork_number(code_number));
 			action("fork", stat, code_number, 0);
 			action("eat", stat, code_number, stat->eat_time);
 			(stat->eat_counts[code_number])++;
@@ -89,14 +84,12 @@ void *philo_life(void *p)
 
 void	init_status(t_status *stat, int argc, char **argv)
 {
-	//init
 	stat->max_number = ft_atoi(argv[1]);
 	stat->number = ft_atoi(argv[1]);
 	stat->time_to_die = ft_atoi(argv[2]);
 	stat->last_meal_times = (size_t *)malloc(sizeof(size_t) * stat->max_number);
 	stat->eat_time = ft_atoi(argv[3]);
 	stat->sleep_time = ft_atoi(argv[4]);
-	stat->farewell_note = 0;
 	if (argc == 6)
 	{
 		stat->eat_limit = ft_atoi(argv[5]);
@@ -114,12 +107,11 @@ void	init_status(t_status *stat, int argc, char **argv)
 	pthread_mutex_init(&stat->talk_mtx, NULL);
 	for (int i = 0; i < stat->max_number; i++)
 		pthread_mutex_init(&stat->fork_mutex[i], NULL);
-	//create threads
 }
 
 void	are_philos_full(t_status *stat)
 {
-	if(stat->eat_limit)
+	if (stat->eat_limit)
 	{
 		for (int i = 0; i < stat->max_number; i++)
 		{
@@ -157,17 +149,12 @@ int main(int argc, char **argv)
 	for (int i = 0; i < stat.max_number; i++)
 	{
 		pthread_create(&philos[i], NULL, &philo_life, &stat);
-		// pthread_join(philos[i], NULL);
 		pthread_detach(philos[i]);
 		usleep(100);
 	}
-	//everybody dies
 	while (1)
 	{
 		are_philos_starved(&stat);
 		are_philos_full(&stat);
-		if (stat.farewell_note)
-			exit(1);
 	}
-	// usleep(900000);
 }
